@@ -1,0 +1,641 @@
+HTML
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xứ Nghệ Âm Vang - Cổng Học Tập Dân Ca Ví, Giặm</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #FAF6F0;
+      color: #332211;
+    }
+    .font-serif-custom {
+      font-family: 'Merriweather', serif;
+    }
+    .bg-nghe-red {
+      background-color: #8B2613;
+    }
+    .text-nghe-red {
+      color: #8B2613;
+    }
+    .bg-nghe-gold {
+      background-color: #D4A359;
+    }
+    .border-nghe-red {
+      border-color: #8B2613;
+    }
+    .hover-nghe-red:hover {
+      background-color: #6e1d0d;
+    }
+    
+    /* Gạch chân màu đỏ cho từ địa phương */
+    .nghe-word {
+      color: #8B2613;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+      text-underline-offset: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0 2px;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .nghe-word:hover {
+      background-color: #FCE8E3;
+      text-decoration-style: solid;
+    }
+
+    /* Video Embed Container */
+    .responsive-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- HEADER -->
+  <header class="bg-nghe-red text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('player')">
+        <div class="w-10 h-10 rounded-full bg-yellow-500 flex items-center justify-center text-nghe-red font-bold text-xl shadow">
+          <i class="fa-solid fa-music"></i>
+        </div>
+        <div>
+          <h1 class="font-serif-custom font-bold text-xl md:text-2xl text-yellow-300 tracking-wide">XỨ NGHỆ ÂM VANG</h1>
+          <p class="text-xs text-yellow-100 opacity-90">Cổng Học Tập Dân Ca Ví, Giặm Cho Học Sinh</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex flex-wrap items-center gap-2 text-sm font-medium">
+        <button id="nav-player" onclick="switchTab('player')" class="px-3 py-2 rounded-lg bg-yellow-500 text-nghe-red font-bold transition flex items-center gap-2">
+          <i class="fa-solid fa-headphones"></i> Học Hát & Trình Phát
+        </button>
+        <button id="nav-manage" onclick="switchTab('manage')" class="px-3 py-2 rounded-lg hover:bg-black/20 text-yellow-100 transition flex items-center gap-2">
+          <i class="fa-solid fa-[#fa-list-check] fa-list-check"></i> Quản Lý Bài Hát
+        </button>
+        <button id="nav-dict" onclick="switchTab('dict')" class="px-3 py-2 rounded-lg hover:bg-black/20 text-yellow-100 transition flex items-center gap-2">
+          <i class="fa-solid fa-book"></i> Từ Điển Tiếng Nghệ
+        </button>
+        <button id="nav-quiz" onclick="switchTab('quiz')" class="px-3 py-2 rounded-lg hover:bg-black/20 text-yellow-100 transition flex items-center gap-2">
+          <i class="fa-solid fa-award"></i> Trắc Nghiệm
+        </button>
+      </nav>
+
+      <!-- Score badge -->
+      <div class="bg-black/30 border border-yellow-500/50 rounded-full px-4 py-1.5 flex items-center gap-2">
+        <i class="fa-solid fa-star text-yellow-400"></i>
+        <span class="text-xs text-yellow-200">Điểm tích lũy:</span>
+        <span id="user-score" class="font-bold text-yellow-300">150</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+
+    <!-- TAB 1: PLAYER & LYRICS -->
+    <section id="tab-player" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Playlist sidebar (Left) -->
+      <div class="lg:col-span-4 bg-white rounded-xl shadow-md border border-orange-100 p-4 flex flex-col h-[600px]">
+        <div class="flex justify-between items-center mb-4 pb-2 border-b">
+          <h2 class="font-bold text-lg text-nghe-red flex items-center gap-2">
+            <i class="fa-solid fa-list"></i> Danh Sách Bài Hát
+          </h2>
+          <span id="song-count" class="text-xs bg-orange-100 text-nghe-red px-2 py-1 rounded-full font-bold">0 bài</span>
+        </div>
+        
+        <!-- Search -->
+        <div class="relative mb-3">
+          <input type="text" id="search-song" oninput="renderPlaylist()" placeholder="Tìm tên bài hát, thể loại..." class="w-full pl-9 pr-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-nghe-red/50">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-gray-400 text-sm"></i>
+        </div>
+
+        <!-- Song List -->
+        <div id="playlist-container" class="flex-grow overflow-y-auto space-y-2 pr-1">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <button onclick="switchTab('manage')" class="mt-4 w-full py-2 bg-orange-50 hover:bg-orange-100 text-nghe-red font-medium rounded-lg text-sm transition border border-orange-200 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-plus-circle"></i> Thêm bài hát mới
+        </button>
+      </div>
+
+      <!-- Player & Interactive Lyrics (Right) -->
+      <div class="lg:col-span-8 space-y-6">
+        <!-- Main Display Card -->
+        <div class="bg-white rounded-xl shadow-md border border-orange-100 p-6">
+          <div class="flex flex-wrap justify-between items-start gap-4 mb-4 border-b pb-3">
+            <div>
+              <span id="current-genre" class="text-xs font-semibold px-2.5 py-1 bg-yellow-100 text-yellow-800 rounded-full">Dân Ca Giặm</span>
+              <h2 id="current-title" class="font-serif-custom font-bold text-2xl text-nghe-red mt-2">Chọn một bài hát từ danh sách</h2>
+            </div>
+            <div class="text-xs text-gray-500 bg-amber-50 p-2 rounded border border-amber-200">
+              <i class="fa-solid fa-circle-info text-amber-600 mr-1"></i> Bấm vào <span class="text-nghe-red font-bold underline">từ gạch chân</span> để xem giải nghĩa từ xứ Nghệ.
+            </div>
+          </div>
+
+          <!-- Media Player Window -->
+          <div class="mb-6 bg-black rounded-lg overflow-hidden shadow-inner flex flex-col items-center justify-center min-h-[220px]">
+            <div id="media-player-container" class="w-full">
+              <!-- Audio or YouTube Iframe rendered here -->
+            </div>
+          </div>
+
+          <!-- Lyrics Display Container -->
+          <div class="bg-amber-50/50 rounded-xl p-6 border border-amber-100/80 min-h-[250px] flex flex-col items-center justify-center text-center">
+            <div id="lyrics-container" class="font-serif-custom text-lg md:text-xl leading-relaxed space-y-3 text-gray-800">
+              <p class="text-gray-400 italic">Vui lòng chọn bài hát bên trái để bắt đầu học...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: MANAGE SONGS -->
+    <section id="tab-manage" class="hidden max-w-4xl mx-auto space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-md border border-orange-100">
+        <h2 class="font-serif-custom font-bold text-xl text-nghe-red mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-sliders"></i> Quản Lý Danh Sách Bài Hát
+        </h2>
+        <p class="text-sm text-gray-600 mb-6">Bạn có thể dễ dàng thêm bài hát mới, dán link nhạc YouTube/MP3 mà không cần chỉnh sửa code HTML.</p>
+
+        <!-- Song Form -->
+        <form id="song-form" onsubmit="handleSaveSong(event)" class="space-y-4">
+          <input type="hidden" id="form-song-id">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Tên bài hát *</label>
+              <input type="text" id="form-title" required placeholder="Ví dụ: Lời Bác Dặn Trước Lúc Đi Xa" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-nghe-red focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-1">Thể loại *</label>
+              <select id="form-genre" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-nghe-red focus:outline-none bg-white">
+                <option value="Dân Ca Giặm">Dân Ca Giặm (Thơ 5 chữ)</option>
+                <option value="Dân Ca Ví">Dân Ca Ví (Thơ Lục Bát)</option>
+                <option value="Hát Chầu Văn / Hát Xẩm Nghệ">Hát Chầu Văn / Hát Xẩm Nghệ</option>
+                <option value="Khác">Thể loại khác</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Đường link Âm thanh / Video *</label>
+            <input type="text" id="form-url" required placeholder="Dán link YouTube (https://www.youtube.com/watch?v=...) hoặc link MP3 trực tiếp" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-nghe-red focus:outline-none">
+            <p class="text-xs text-gray-500 mt-1"><i class="fa-solid fa-lightbulb text-yellow-600"></i> Hỗ trợ dán trực tiếp link YouTube. Hệ thống sẽ tự động chuyển đổi sang trình phát nhúng chuẩn.</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Lời bài hát *</label>
+            <textarea id="form-lyrics" rows="6" required placeholder="Nhập lời bài hát...
+Mẹo: Muốn chú thích từ ngữ riêng, dùng cú pháp: [từ_địa_phương|nghĩa_phổ_thông]
+Ví dụ: Chuyện [kể|nói] rằng ngày xưa..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-nghe-red focus:outline-none font-serif-custom text-sm leading-relaxed"></textarea>
+          </div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button type="submit" class="px-5 py-2.5 bg-nghe-red text-white font-semibold rounded-lg hover-nghe-red transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu Bài Hát
+            </button>
+            <button type="button" onclick="resetForm()" class="px-4 py-2.5 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">
+              Hủy / Làm mới
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Backup / Restore -->
+      <div class="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <h3 class="font-bold text-amber-900 text-sm">Sao Lưu & Khôi Phục Dữ Liệu Bài Hát</h3>
+          <p class="text-xs text-amber-800">Xuất danh sách bài hát ra tệp file để lưu trữ hoặc chuyển sang máy tính khác.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportData()" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 text-xs font-semibold rounded hover:bg-amber-100 flex items-center gap-1">
+            <i class="fa-solid fa-download"></i> Xuất JSON
+          </button>
+          <label class="px-3 py-1.5 bg-white border border-amber-300 text-amber-900 text-xs font-semibold rounded hover:bg-amber-100 cursor-pointer flex items-center gap-1">
+            <i class="fa-solid fa-upload"></i> Nhập JSON
+            <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: DICTIONARY -->
+    <section id="tab-dict" class="hidden max-w-4xl mx-auto space-y-4">
+      <div class="bg-white p-6 rounded-xl shadow-md border border-orange-100">
+        <h2 class="font-serif-custom font-bold text-xl text-nghe-red mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-book-open"></i> Từ Điển Giải Nghĩa Tiếng Nghệ
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">Tra cứu nhanh các từ ngữ địa phương Nghệ Tĩnh xuất hiện trong các bài hát Dân ca Ví, Giặm.</p>
+        
+        <input type="text" id="dict-search" oninput="renderDictionary()" placeholder="Nhập từ cần tra (vd: mô, tê, răng, rứa, mô kề...)" class="w-full px-4 py-2 border rounded-lg mb-6 focus:ring-2 focus:ring-nghe-red focus:outline-none">
+
+        <div id="dict-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: QUIZ -->
+    <section id="tab-quiz" class="hidden max-w-2xl mx-auto">
+      <div class="bg-white p-6 rounded-xl shadow-md border border-orange-100">
+        <div class="flex justify-between items-center mb-4 border-b pb-3">
+          <h2 class="font-serif-custom font-bold text-xl text-nghe-red flex items-center gap-2">
+            <i class="fa-solid fa-circle-question"></i> Trắc Nghiệm Tích Điểm
+          </h2>
+          <span class="text-xs bg-yellow-100 text-yellow-800 font-bold px-3 py-1 rounded-full">+10 điểm/câu đúng</span>
+        </div>
+
+        <div id="quiz-box" class="space-y-4">
+          <!-- Quiz Question rendered dynamically -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL EXPLANATION -->
+  <div id="word-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl relative border-2 border-nghe-gold animate-bounce-short">
+      <button onclick="closeModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold px-2">&times;</button>
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-orange-100 text-nghe-red flex items-center justify-center font-bold text-lg">
+          <i class="fa-solid fa-language"></i>
+        </div>
+        <div>
+          <h3 id="modal-word" class="font-serif-custom font-bold text-2xl text-nghe-red">--</h3>
+          <p class="text-xs text-gray-500">Từ ngữ địa phương Xứ Nghệ</p>
+        </div>
+      </div>
+      <div class="bg-amber-50 rounded-lg p-4 border border-amber-200">
+        <p class="text-xs text-amber-800 font-semibold mb-1">Nghĩa tiếng phổ thông:</p>
+        <p id="modal-meaning" class="text-gray-800 font-medium text-lg">--</p>
+      </div>
+      <button onclick="closeModal()" class="mt-5 w-full py-2 bg-nghe-red text-white font-bold rounded-lg hover-nghe-red transition">
+        Đã hiểu
+      </button>
+    </div>
+  </div>
+
+  <footer class="bg-stone-800 text-stone-300 py-4 text-center text-xs mt-auto">
+    <p>© Xứ Nghệ Âm Vang - Dự án Giáo dục Dân ca Ví, Giặm Nghệ Tĩnh trong Nhà Trường.</p>
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 1. DEFAULT DATA
+    const defaultSongs = [
+      {
+        id: "song_1",
+        title: "Giặm Kể: Lời Bác Dặn Trước Lúc Đi Xa",
+        genre: "Dân Ca Giặm",
+        url: "https://www.youtube.com/watch?v=MA_VIDEO_DEMO", // Thay link Youtube thực tế tại đây
+        lyrics: `Chuyện [kể|nói/kể lại] rằng ngày xưa
+Trước lúc Bác đi xa
+Bác muốn nghe một câu hát
+Khúc dân ca xứ Nghệ...`
+      },
+      {
+        id: "song_2",
+        title: "Ví Phường Vải: Mời Trầu",
+        genre: "Dân Ca Ví",
+        url: "https://www.youtube.com/watch?v=MA_VIDEO_DEMO2",
+        lyrics: `Trầu này trầu tính trầu tình
+[Ăn|nhai/xơi] vô một miếng cho [mình|bạn/người thương] thấy [mới|vừa] vui.`
+      },
+      {
+        id: "song_3",
+        title: "Ví Đò Đưa Sông Lam",
+        genre: "Dân Ca Ví",
+        url: "https://www.youtube.com/watch?v=MA_VIDEO_DEMO3",
+        lyrics: `Mặt nước Sông Lam [mô|đâu] [răng|sao/thế nào] xanh trong
+Thuyền ai [xuôi|đi xuống] dòng [tê|kia] hỡi người.`
+      }
+    ];
+
+    const dictionaryData = [
+      { word: "mô", meaning: "Đâu, ở đâu" },
+      { word: "tê", meaning: "Kia, đằng kia" },
+      { word: "răng", meaning: "Sao, làm sao, thế nào" },
+      { word: "rứa", meaning: "Thế, như thế" },
+      { word: "kể", meaning: "Nói, thuật lại" },
+      { word: "mềnh", meaning: "Mình, bản thân" },
+      { word: "chi", meaning: "Gì, cái gì" },
+      { word: "nỏ", meaning: "Không, không có" },
+      { word: "bõ", meaning: "Bố, cha" },
+      { word: "mạ", meaning: "Mẹ" }
+    ];
+
+    const quizQuestions = [
+      {
+        q: "Trong Dân ca Nghệ Tĩnh, từ 'Mô' có nghĩa là gì trong tiếng phổ thông?",
+        options: ["Thế nào", "Ở đâu", "Cái gì", "Không"],
+        correct: 1
+      },
+      {
+        q: "Hát Giặm Nghệ Tĩnh thường sử dụng thể thơ mấy chữ?",
+        options: ["Thơ Lục Bát", "Thơ 5 chữ", "Thơ 7 chữ", "Thơ tự do"],
+        correct: 1
+      },
+      {
+        q: "Từ 'Nỏ' trong tiếng Nghệ có nghĩa là gì?",
+        options: ["Có", "Rất nhiều", "Không", "Sợ hãi"],
+        correct: 2
+      }
+    ];
+
+    // 2. STATE MANAGEMENT
+    let songs = JSON.parse(localStorage.getItem('nghe_songs')) || defaultSongs;
+    let currentSongId = songs[0]?.id || null;
+    let score = parseInt(localStorage.getItem('nghe_score')) || 150;
+    let currentQuizIndex = 0;
+
+    // 3. INIT & TABS
+    window.addEventListener('DOMContentLoaded', () => {
+      renderPlaylist();
+      renderDictionary();
+      renderQuiz();
+      updateScoreUI();
+      if (currentSongId) selectSong(currentSongId);
+    });
+
+    function switchTab(tabName) {
+      ['player', 'manage', 'dict', 'quiz'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.classList.remove('bg-yellow-500', 'text-nghe-red', 'font-bold');
+          navBtn.classList.add('hover:bg-black/20', 'text-yellow-100');
+        }
+      });
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-yellow-500', 'text-nghe-red', 'font-bold');
+        activeBtn.classList.remove('hover:bg-black/20', 'text-yellow-100');
+      }
+    }
+
+    // 4. PLAYLIST & PLAYER LOGIC
+    function renderPlaylist() {
+      const search = document.getElementById('search-song').value.toLowerCase();
+      const container = document.getElementById('playlist-container');
+      const filtered = songs.filter(s => s.title.toLowerCase().includes(search) || s.genre.toLowerCase().includes(search));
+
+      document.getElementById('song-count').textContent = `${songs.length} bài`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Không tìm thấy bài hát nào.</p>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(s => {
+        const isActive = s.id === currentSongId;
+        return `
+          <div class="p-3 rounded-lg border transition cursor-pointer flex justify-between items-center ${isActive ? 'bg-orange-100/80 border-nghe-red' : 'bg-gray-50 border-gray-200 hover:bg-orange-50'}" onclick="selectSong('${s.id}')">
+            <div class="pr-2 overflow-hidden">
+              <h4 class="font-bold text-sm text-gray-800 truncate ${isActive ? 'text-nghe-red' : ''}">${s.title}</h4>
+              <span class="text-[11px] text-gray-500">${s.genre}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <button onclick="event.stopPropagation(); editSong('${s.id}')" class="p-1.5 text-xs text-gray-400 hover:text-blue-600"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="event.stopPropagation(); deleteSong('${s.id}')" class="p-1.5 text-xs text-gray-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectSong(id) {
+      currentSongId = id;
+      const song = songs.find(s => s.id === id);
+      if (!song) return;
+
+      renderPlaylist();
+      document.getElementById('current-title').textContent = song.title;
+      document.getElementById('current-genre').textContent = song.genre;
+
+      // Render Media Player
+      const playerContainer = document.getElementById('media-player-container');
+      const ytMatch = song.url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+
+      if (ytMatch && ytMatch[1]) {
+        // YouTube Player
+        playerContainer.innerHTML = `
+          <div class="relative w-full pt-[56.25%] bg-black">
+            <iframe class="responsive-iframe" src="https://www.youtube.com/embed/${ytMatch[1]}?autoplay=0" allowfullscreen></iframe>
+          </div>`;
+      } else if (song.url.endsWith('.mp3') || song.url.includes('audio')) {
+        // HTML5 Audio Player
+        playerContainer.innerHTML = `
+          <div class="p-6 text-center">
+            <audio controls class="w-full">
+              <source src="${song.url}" type="audio/mpeg">
+              Trình duyệt của bạn không hỗ trợ thẻ audio.
+            </audio>
+          </div>`;
+      } else {
+        // Fallback Iframe Embed
+        playerContainer.innerHTML = `
+          <div class="relative w-full pt-[56.25%] bg-black">
+            <iframe class="responsive-iframe" src="${song.url}"></iframe>
+          </div>`;
+      }
+
+      // Render Interactive Lyrics
+      renderLyrics(song.lyrics);
+    }
+
+    function renderLyrics(rawLyrics) {
+      const container = document.getElementById('lyrics-container');
+      const lines = rawLyrics.split('\n');
+
+      const htmlLines = lines.map(line => {
+        if (!line.trim()) return '<br>';
+        
+        // Match custom syntax [từ|nghĩa]
+        let processedLine = line.replace(/\[(.*?)\Vert{}(.*?)\]/g, (match, word, meaning) => {
+          return `<span class="nghe-word" onclick="showWordMeaning('${word}', '${meaning}')">${word}</span>`;
+        });
+
+        // Match automatic dictionary
+        dictionaryData.forEach(dict => {
+          const regex = new RegExp(`\\b(${dict.word})\\b`, 'gi');
+          processedLine = processedLine.replace(regex, (m) => {
+            if (processedLine.includes(`showWordMeaning('${m}'`)) return m; 
+            return `<span class="nghe-word" onclick="showWordMeaning('${m}', '${dict.meaning}')">${m}</span>`;
+          });
+        });
+
+        return `<p>${processedLine}</p>`;
+      });
+
+      container.innerHTML = htmlLines.join('');
+    }
+
+    // 5. MODAL LOGIC
+    function showWordMeaning(word, meaning) {
+      document.getElementById('modal-word').textContent = word;
+      document.getElementById('modal-meaning').textContent = meaning;
+      document.getElementById('word-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('word-modal').classList.add('hidden');
+    }
+
+    // 6. MANAGE SONGS LOGIC
+    function handleSaveSong(e) {
+      e.preventDefault();
+      const id = document.getElementById('form-song-id').value || 'song_' + Date.now();
+      const title = document.getElementById('form-title').value.trim();
+      const genre = document.getElementById('form-genre').value;
+      const url = document.getElementById('form-url').value.trim();
+      const lyrics = document.getElementById('form-lyrics').value.trim();
+
+      const existingIndex = songs.findIndex(s => s.id === id);
+      if (existingIndex >= 0) {
+        songs[existingIndex] = { id, title, genre, url, lyrics };
+      } else {
+        songs.push({ id, title, genre, url, lyrics });
+      }
+
+      localStorage.setItem('nghe_songs', JSON.stringify(songs));
+      resetForm();
+      switchTab('player');
+      selectSong(id);
+      alert('Đã lưu bài hát thành công!');
+    }
+
+    function editSong(id) {
+      const song = songs.find(s => s.id === id);
+      if (!song) return;
+
+      document.getElementById('form-song-id').value = song.id;
+      document.getElementById('form-title').value = song.title;
+      document.getElementById('form-genre').value = song.genre;
+      document.getElementById('form-url').value = song.url;
+      document.getElementById('form-lyrics').value = song.lyrics;
+
+      switchTab('manage');
+    }
+
+    function deleteSong(id) {
+      if (confirm('Bạn có chắc chắn muốn xóa bài hát này?')) {
+        songs = songs.filter(s => s.id !== id);
+        localStorage.setItem('nghe_songs', JSON.stringify(songs));
+        renderPlaylist();
+        if (currentSongId === id && songs.length > 0) {
+          selectSong(songs[0].id);
+        }
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('song-form').reset();
+      document.getElementById('form-song-id').value = '';
+    }
+
+    function exportData() {
+      const blob = new Blob([JSON.stringify(songs, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'xu-nghe-am-vang-songs.json';
+      a.click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            songs = imported;
+            localStorage.setItem('nghe_songs', JSON.stringify(songs));
+            renderPlaylist();
+            alert('Đã nhập dữ liệu bài hát thành công!');
+          }
+        } catch (err) {
+          alert('Tệp JSON không hợp lệ!');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // 7. DICTIONARY & QUIZ
+    function renderDictionary() {
+      const search = document.getElementById('dict-search').value.toLowerCase();
+      const list = document.getElementById('dict-list');
+      const filtered = dictionaryData.filter(d => d.word.toLowerCase().includes(search) || d.meaning.toLowerCase().includes(search));
+
+      list.innerHTML = filtered.map(d => `
+        <div class="p-3 bg-amber-50/60 rounded-lg border border-amber-200 flex justify-between items-center">
+          <span class="font-bold text-nghe-red text-base">${d.word}</span>
+          <span class="text-gray-700 text-sm">${d.meaning}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderQuiz() {
+      const box = document.getElementById('quiz-box');
+      if (currentQuizIndex >= quizQuestions.length) {
+        box.innerHTML = `
+          <div class="text-center py-6">
+            <i class="fa-solid fa-trophy text-yellow-500 text-4xl mb-3"></i>
+            <h3 class="font-bold text-xl text-gray-800">Bạn đã hoàn thành tất cả câu hỏi!</h3>
+            <p class="text-sm text-gray-600 mt-1">Tổng điểm tích lũy của bạn: <span class="font-bold text-nghe-red">${score} điểm</span></p>
+            <button onclick="currentQuizIndex=0; renderQuiz()" class="mt-4 px-4 py-2 bg-nghe-red text-white text-sm font-bold rounded-lg">Làm lại bài trắc nghiệm</button>
+          </div>`;
+        return;
+      }
+
+      const q = quizQuestions[currentQuizIndex];
+      box.innerHTML = `
+        <p class="font-semibold text-gray-800 text-base mb-3">Câu ${currentQuizIndex + 1}: ${q.q}</p>
+        <div class="space-y-2">
+          ${q.options.map((opt, idx) => `
+            <button onclick="checkAnswer(${idx})" class="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-orange-50 hover:border-nghe-red text-sm font-medium transition">
+              ${String.fromCharCode(65 + idx)}.${opt}
+            </button>
+          `).join('')}
+        </div>`;
+    }
+
+    function checkAnswer(selectedIdx) {
+      const q = quizQuestions[currentQuizIndex];
+      if (selectedIdx === q.correct) {
+        score += 10;
+        updateScoreUI();
+        alert('Chính xác! Bạn nhận được +10 điểm.');
+      } else {
+        alert(`Rất tiếc! Đáp án đúng là: ${q.options[q.correct]}`);
+      }
+      currentQuizIndex++;
+      renderQuiz();
+    }
+
+    function updateScoreUI() {
+      localStorage.setItem('nghe_score', score);
+      document.getElementById('user-score').textContent = score;
+    }
+  </script>
+</body>
+</html>
